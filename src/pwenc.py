@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+$Id$
+
+The purpose of this module is to create a package which will allow for easy
+file encryption and decryption
+"""
 
 import sys , os , re
 
