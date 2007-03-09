@@ -24,7 +24,7 @@ class GPGFileEncrypter:
     This exists as a method to use an external GPG program to
     encrypt files and allow for the editing of said files
     """
-    def __init__(self , filename , gpgId , gpgProg=None):
+    def __init__(self , filename , gpgId , gpgProg=None , quiet=True):
         # First check for a passed in path to GPG
         if gpgProg and os.path.isfile(gpgProg):
             self.gpgProg = gpgProg
@@ -35,6 +35,8 @@ class GPGFileEncrypter:
         # No GPG to be found
         if not self.gpgProg:
             raise NoGPGException , 'You need to install GPG'
+        
+        self.quiet = quiet
         
         if not os.path.isfile(filename):
             raise InvalidFileException , filename
