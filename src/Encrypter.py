@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os , sys
 from Crypto.Hash import MD5
 from Crypto.Cipher import AES
 
@@ -36,9 +35,16 @@ class Encrypter:
         if not self.pwHash:
             raise Exception , 'You need to specify a password before you ' + \
                               'can encrypt your string'
-        if not self.toEncrypt or not toEncrypt:
+        if not self.toEncrypt and not toEncrypt:
             raise Exception , 'You need to specify a string to encrypt'
         if toEncrypt != None:
             self.toEncrypt = toEncrypt
+        # Since AES encryption requires the string to be a multiple of 16
+        # characters, we will pad with spaces for now, null bytes later
+        pad = 16 - len(self.toEncrypt) % 16
+        padded = self.toEncrypt
+        if pad:
+            for i in range(pad):
+                padded += '\0'
         
-        return self.aes.encrypt(self.toEncrypt)
+        return self.aes.encrypt(padded)
