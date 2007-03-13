@@ -45,21 +45,25 @@ class Decrypter:
     
 if __name__ == '__main__':
     from Encrypter import *
-    import sys , os
+    import sys , os , getpass
     
-    print "Enter a password:",
-    os.system('stty -echo')
-    password = raw_input()
-    os.system('stty echo')
+    password = getpass.getpass("Enter a password: ")
     print
     print "A line of text to encrypt:",
     text = raw_input()
+    print 'A second line of text to encrypt:',
+    text2 = raw_input()
     
     enc = Encrypter(password , text)
     dec = Decrypter(password)
     
     enctext = enc.encrypt()
+    enctext2 = enc.encrypt(text2)
+    comEnctext = enctext + enctext2
     
     print '\nDecrypted text:',
     dectext = dec.decrypt(enctext)
-    print dectext
+    dectext2 = dec.decrypt(enctext2)
+    comDectext = dec.decrypt(comEnctext)
+    print 'Text 1: %s\nText 2: %s\nText Combined: %s\n' % (dectext , dectext2 ,
+                                                     comDectext)
