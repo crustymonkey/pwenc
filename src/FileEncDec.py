@@ -38,7 +38,11 @@ class FileEncDec (Decrypter , Encrypter):
         Returns the input file object
         """
         return self.oFile
-    
+
+    def setPassword (self , password):
+        Encrypter.setPassword(self , password)
+        Decrypter.setPassword(self , password)
+        
     def _getFObject (self , file , mode='r'):
         if file == None:
             raise InvalidFileException , 'You must specify a file'
@@ -103,17 +107,20 @@ class FileEncDec (Decrypter , Encrypter):
         If a valid file is NOT passed in, the output will default to stdout
         """
         self._encDecFile(outFile , self.decrypt)
+        
     def close (self):
         if not self.oFile.closed:
             self.oFile.close()
-        
+    
 # Testing
 if __name__ == '__main__':
+    fenc = None
     if sys.argv[1] == 'enc':
-        fenc = FileEncDec('chicken' , '/home/jdeiman/writetest')
+        fenc = FileEncDec(file='/home/jdeiman/writetest')
+        fenc.setPassword('chicken')
         fenc.encFile('/home/jdeiman/encfile')
     elif sys.argv[1] == 'dec':
-        fenc = FileEncDec('chicken' , '/home/jdeiman/encfile')
+        fenc = FileEncDec(file='/home/jdeiman/encfile')
+        fenc.setPassword('chicken')
         fenc.decFile(sys.stdout)
-    fenc.close()
-    
+    fenc.close()   
