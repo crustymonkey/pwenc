@@ -24,7 +24,6 @@ class PWEncGlobals (object):
         try:
             self.setDefaultFile(defaultFile)
         except InvalidFileException:
-            print sys.exc_value()
             self._defaultFile = '/home/jdeiman/private/passwords'
             self._defaultEncFile = self._defaultFile + self.ENC_FILE_EXT
             
