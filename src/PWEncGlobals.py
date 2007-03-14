@@ -6,6 +6,13 @@ import getopt , os , sys , re
 __all__ = ['InvalidAction' , 'PWEncGlobals']
 __version__ = '$Id$'
 
+# Change this to your default
+DEFAULT_FILE = '/home/jdeiman/private/passwords'
+
+#############################################
+# DO NOT EDIT BELOW HERE
+#############################################
+
 class InvalidAction (Exception): pass
 
 # Globals
@@ -16,6 +23,7 @@ class PWEncGlobals (object):
     ACT_EDIT = 8
     ENC_FILE_EXT = '.enc'
     def __init__ (self , action=0 , defaultFile=''):
+        global DEFAULT_FILE
         try:
             self.setAction(action)
         except InvalidAction:
@@ -24,7 +32,7 @@ class PWEncGlobals (object):
         try:
             self.setDefaultFile(defaultFile)
         except InvalidFileException:
-            self._defaultFile = '/home/jdeiman/private/passwords'
+            self._defaultFile = DEFAULT_FILE
             self._defaultEncFile = self._defaultFile + self.ENC_FILE_EXT
             
         self._removeOriginal = False
