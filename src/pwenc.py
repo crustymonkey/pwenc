@@ -1,22 +1,52 @@
 #!/usr/bin/env python
 
-from PWEncGlobals import *
-from FileEncrypter import FileEncDec
+"""
+This is a script designed to take an input file and encrypt, 
+decrypt, show or edit the file.  It uses an MD5 password hashing
+plus AES encryption for the file.  You can set your default, 
+unencrypted, filename at the top of this file.
+
+Use "pwenc.py -h" to show the help for command-line operations
+"""
+
+# Change to your default unencrypted file path
+DEFAULT_FILE = '/home/jdeiman/private/passwords'
+
+######################################
+#      DO NOT EDIT BELOW HERE        #
+######################################
+
+from FileEncrypter import FileEncDec , PWEncGlobals
 import sys , os , getopt , tempfile , getpass
 
 __version__ = '$Id$'
+__all__ = ['usage' , 'setGlobalOpts' , 'getPassword' , 'answerIsYes' ,
+           'findProg' , 'encrypt' , 'decrypt' , 'edit' , 'show' , 'main']
 
 def usage (exitCode=0):
-    print 'Usage: pwenc [-h] [-k] -(e|d|t|s) <file>'
+    """ Simply shows the help text if given a -h arg """
+    print 'Usage: pwenc [-h] [-k] -(e|d|t|s) [<file>]'
     print '\t-h,--help\tshow this help'
     print '\t-k,--keep\tkeep the original file in an encrypt/decrypt op'
     print '\t-e,--encrypt\tencrypt the file'
     print '\t-d,--decrypt\tdecrypt the file'
-    print '\t-t,--edit\tedit the file'
-    print '\t-s,--show\tshow the file in your pager'
+    print '\t-t,--edit\tedit the file in your EDITOR'
+    print '\t-s,--show\tshow the file in your PAGER'
+    print """If <file> is not supplied, the DEFAULT_FILE from the top of the
+pwenc.py file will be used.  You can open this file and change 
+that variable to make operations faster.  Once this is set to the
+path to your UNENCRYPTED file, you can use just type "pwenc.py -s"
+or -e, etc., to show the file.
+"""
+
+    print 'You can type "pydoc pwenc" for more information'
     sys.exit(exitCode)
 
 def setGlobalOpts (glbs):
+    """
+    Sets the global options from what is input on the command-line.  You
+    can use "pwenc.py -h" to show the usage for the command-line ops
+    """
     shortOpts = ':edtshk'
     longOpts = ['encrypt' , 'decrypt' , 'edit' , 'show' , 'help' , 'keep']
     try:
@@ -45,6 +75,7 @@ def setGlobalOpts (glbs):
         glbs.DefaultFile = filelist[0]
 
 def getPassword (glbs , fCrypt):
+    """ Retrieves the password from the user and hashes it for use later """
     password = getpass.getpass('Passphrase: ')
     if glbs.Action == PWEncGlobals.ACT_ENC:
         password2 = getpass.getpass('Passphrase Again: ')
@@ -83,6 +114,7 @@ def findProg (progName , arrPaths):
     return False
     
 def encrypt (glbs , fCrypt):
+    """ The function which encrypts your file """
     if not os.path.isfile(glbs.DefaultFile):
         print 'No file, %s, to encrypt' % glbs.DefaultFile
         sys.exit(4)
@@ -99,6 +131,7 @@ def encrypt (glbs , fCrypt):
         os.remove(glbs.DefaultFile)
 
 def decrypt (glbs , fCrypt):
+    """ The function which decrypts your file """
     if not os.path.isfile(glbs.DefaultEncFile):
         print 'No file, %s, to decrypt' % glbs.DefaultEncFile
         sys.exit(4)
@@ -156,6 +189,11 @@ def edit (glbs , fCrypt):
     os.remove(tmpName)
 
 def show (glbs , fCrypt):
+    """
+    This will decrypt the file to memory and open the decrypted file for
+    viewing in whatever you have set in your environment as PAGER.  If no
+    environment variable, PAGER, is found, "less" is used as the default
+    """
     # Need to find the path to the pager
     try:
         path = os.environ['PATH']
@@ -188,7 +226,12 @@ def show (glbs , fCrypt):
     fCrypt.close()
         
 def main ():
-    glbs = PWEncGlobals()
+    """
+    The main function for the program.  Sets up objects and performs the
+    requested action
+    """
+    global DEFAULT_FILE
+    glbs = PWEncGlobals(defaultFile=DEFAULT_FILE)
     fCrypt = FileEncDec()
     setGlobalOpts(glbs)
     # get the password
