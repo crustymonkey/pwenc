@@ -55,7 +55,7 @@ class FileEncDec (Decrypter , Encrypter):
             # We supposedly have a file descriptor, it's going to throw an
             # exception if the int is not actually a file desciptor
             try:
-                fObject = os.fdopen(file)
+                fObject = os.fdopen(file , mode)
             except OSError:
                 raise InvalidFileException , 'The integer does not refer ' + \
                                              'to a valid file descriptor'
@@ -83,7 +83,13 @@ class FileEncDec (Decrypter , Encrypter):
         except InvalidFileException:
             # Default to standard out if the outfile is invalid
             oOutFile = sys.stdout
-            
+        
+        if op == self.encrypt:
+            # Write the password hash at the beginning
+            oOutFile.write(self.oMd5.digest())
+        else:
+            # Read the first 16 bytes to bypass the password
+            self.oFile.read(16) 
         while True:
             block = self.oFile.read(4096)
             if not block:
@@ -107,6 +113,19 @@ class FileEncDec (Decrypter , Encrypter):
         If a valid file is NOT passed in, the output will default to stdout
         """
         self._encDecFile(outFile , self.decrypt)
+    
+    def checkPass (self):
+        """
+        Read the first 16 bytes of the file to get the password hash and
+        compare them to the current hash
+        """
+        self.oFile.seek(0)
+        passHash = self.oFile.read(16)
+        self.oFile.seek(0)
+        if passHash == self.oMd5.digest():
+            return True
+        
+        return False
         
     def close (self):
         if not self.oFile.closed:
