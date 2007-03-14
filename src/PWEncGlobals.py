@@ -35,7 +35,7 @@ class PWEncGlobals (object):
             self._defaultFile = DEFAULT_FILE
             self._defaultEncFile = self._defaultFile + self.ENC_FILE_EXT
             
-        self._removeOriginal = False
+        self._removeOriginal = True
         
     def getAction (self):
         return self._action
