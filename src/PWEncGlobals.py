@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from FileEncDec import *
+from FileEncrypter import FileEncDec , InvalidFileException
 import getopt , os , sys , re
 
 __all__ = ['InvalidAction' , 'PWEncGlobals']

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from PWEncGlobals import *
-from FileEncDec import *
+from FileEncrypter import FileEncDec
 import sys , os , getopt , tempfile , getpass
 
 __version__ = '$Id$'
