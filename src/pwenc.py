@@ -9,7 +9,7 @@ __version__ = '$Id$'
 def usage (exitCode=0):
     print 'Usage: pwenc [-h] [-k] -(e|d|t|s) <file>'
     print '\t-h,--help\tshow this help'
-    print '\t-r,--remove\tkeep the original file in an encrypt/decrypt op'
+    print '\t-k,--keep\tkeep the original file in an encrypt/decrypt op'
     print '\t-e,--encrypt\tencrypt the file'
     print '\t-d,--decrypt\tdecrypt the file'
     print '\t-t,--edit\tedit the file'
@@ -17,8 +17,8 @@ def usage (exitCode=0):
     sys.exit(exitCode)
 
 def setGlobalOpts (glbs):
-    shortOpts = ':edtshr'
-    longOpts = ['encrypt' , 'decrypt' , 'edit' , 'show' , 'help' , 'remove']
+    shortOpts = ':edtshk'
+    longOpts = ['encrypt' , 'decrypt' , 'edit' , 'show' , 'help' , 'keep']
     try:
         optlist , filelist = getopt.getopt(sys.argv[1:] , shortOpts , longOpts)
     except getopt.GetOptError:
@@ -38,8 +38,8 @@ def setGlobalOpts (glbs):
             glbs.Action = PWEncGlobals.ACT_SHOW
         if opt[0] == '-h' or opt[0] == '--help':
             usage()
-        if opt[0] == '-r' or opt[0] == '--remove':
-            glbs.RemoveOriginal = True
+        if opt[0] == '-k' or opt[0] == '--keep':
+            glbs.RemoveOriginal = False
     
     if len(filelist) == 1:
         glbs.DefaultFile = filelist[0]
