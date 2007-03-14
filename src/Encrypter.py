@@ -28,7 +28,8 @@ class Encrypter:
         if not password:
             raise Exception , 'You must specify a password to use for ' + \
                               'encryption'
-        self.pwHash = MD5.new(password).hexdigest()
+        self.oMd5 = MD5.new(password)
+        self.pwHash = self.oMd5.hexdigest()
         self.aes = AES.new(self.pwHash , AES.MODE_ECB)
         
     def encrypt (self , toEncrypt=None):
