@@ -45,15 +45,15 @@ def setGlobalOpts (glbs):
         glbs.DefaultFile = filelist[0]
 
 def getPassword (glbs , fCrypt):
-    password = getpass.getpass('Password: ')
+    password = getpass.getpass('Passphrase: ')
     if glbs.Action == PWEncGlobals.ACT_ENC:
-        password2 = getpass.getpass('Password Again: ')
+        password2 = getpass.getpass('Passphrase Again: ')
         if password != password2:
-            print 'Your passwords did not match, try again'
+            print 'Your passphrases did not match, try again'
             getPassword(glbs , fCrypt)
     
     if len(password) < 4:
-        print 'Your password must be at least 4 characters'
+        print 'Your passphrase must be at least 4 characters'
         getPassword(glbs , fCrypt)
         
     fCrypt.setPassword(password)
@@ -108,6 +108,9 @@ def decrypt (glbs , fCrypt):
             sys.exit(5)
     
     fCrypt.setInFile(glbs.DefaultEncFile)
+    if not fCrypt.checkPass():
+            print 'Passphrase incorrect'
+            sys.exit(10)
     fCrypt.decFile(glbs.DefaultFile)
     fCrypt.close()
     
@@ -115,7 +118,42 @@ def decrypt (glbs , fCrypt):
         os.remove(glbs.DefaultEncFile)
 
 def edit (glbs , fCrypt):
-    print 'Not yet implemented'
+    """
+    This method writes the encrypted file to a temp file for writing, then
+    it replaces the original encrypted file with the newly edited one
+    """
+    # Need to figure out the editor here to use
+    try:
+        path = os.environ['PATH']
+    except KeyError:
+        path = '/usr/local/bin:/usr/bin:/bin'
+    try:
+        editor = findProg(os.environ['EDITOR'] , path.split(':'))
+    except KeyError:
+        # default to vi
+        editor = findProg('vi' , path.split(':'))
+    if not editor:
+        print 'You do not have a EDITOR environment variable set and I ' + \
+              'can\'t find "vi" in your PATH'
+        sys.exit(2)
+    fCrypt.setInFile(glbs.DefaultEncFile)
+    if not fCrypt.checkPass():
+        print 'Passphrase incorrect'
+        sys.exit(10)
+    # Create the temp file
+    (tmpFd , tmpName) = tempfile.mkstemp('.tmp' , 'PW_')
+    # First decrypt the file to a temp file
+    fCrypt.decFile(tmpFd)
+    fCrypt.close()
+    cmd = '%s %s' % (editor , tmpName)
+    # Now execute the user's editor to edit the temp file
+    os.system(cmd)
+    # Now encrypt the temp file to the original
+    fCrypt.setInFile(tmpName)
+    fCrypt.encFile(glbs.DefaultEncFile)
+    fCrypt.close()
+    # And finally, remove the temp file
+    os.remove(tmpName)
 
 def show (glbs , fCrypt):
     # Need to find the path to the pager
@@ -127,6 +165,7 @@ def show (glbs , fCrypt):
     try:
         pager = findProg(os.environ['PAGER'] , path.split(':'))
     except KeyError:
+        # default to less
         pager = findProg('less' , path.split(':'))
     if not pager:
         print 'You do not have a PAGER environment variable set and I ' + \
@@ -139,7 +178,10 @@ def show (glbs , fCrypt):
                 glbs.getDefaultEncFile()
         sys.exit(3)
     # It does, so we set it in the encryption instance
-    fCrypt.setInFile(glbs.getDefaultEncFile())
+    fCrypt.setInFile(glbs.DefaultEncFile)
+    if not fCrypt.checkPass():
+            print 'Passphrase incorrect'
+            sys.exit(10)
     
     fhPager = os.popen(pager , 'w')
     fCrypt.decFile(fhPager)
