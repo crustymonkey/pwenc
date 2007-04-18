@@ -14,6 +14,7 @@ class Decrypter:
             self.setPassword(password)
         else:
             self.pwHash = None
+            self.password = None
             self.aes = None
             
     def setToDecrypt (self , toDecrypt):
@@ -31,10 +32,11 @@ class Decrypter:
                               'encryption'
         self.oMd5 = MD5.new(password)
         self.pwHash = self.oMd5.hexdigest()
-        self.aes = AES.new(self.pwHash , AES.MODE_ECB)
+        self.password = password
+        self.aes = AES.new(self.password , AES.MODE_ECB)
         
     def decrypt (self , toDecrypt=None):
-        if not self.pwHash:
+        if not self.password:
             raise Exception , 'You need to specify a password before you ' + \
                               'can encrypt your string'
         if not self.toDecrypt and not toDecrypt:
