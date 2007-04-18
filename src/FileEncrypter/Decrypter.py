@@ -29,10 +29,16 @@ class Decrypter:
     def setPassword (self , password):
         if not password:
             raise Exception , 'You must specify a password to use for ' + \
-                              'encryption'
-        self.oMd5 = MD5.new(password)
+                              'decryption'
+        if len(password) > 32:
+            self.password = password[:32]
+        else:
+            self.password = password
+            topad = 32 - len(password)
+            for i in range(topad):
+                self.password += '\0'
+        self.oMd5 = MD5.new(self.password)
         self.pwHash = self.oMd5.hexdigest()
-        self.password = password
         self.aes = AES.new(self.password , AES.MODE_ECB)
         
     def decrypt (self , toDecrypt=None):

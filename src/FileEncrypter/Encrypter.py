@@ -29,9 +29,15 @@ class Encrypter:
         if not password:
             raise Exception , 'You must specify a password to use for ' + \
                               'encryption'
+        if len(password) > 32:
+            self.password = password[:32]
+        else:
+            self.password = password
+            topad = 32 - len(password)
+            for i in range(topad):
+                self.password += '\0'
         self.oMd5 = MD5.new(password)
         self.pwHash = self.oMd5.hexdigest()
-        self.password = password
         self.aes = AES.new(self.password , AES.MODE_ECB)
         
     def encrypt (self , toEncrypt=None):
