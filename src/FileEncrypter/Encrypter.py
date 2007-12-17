@@ -4,7 +4,7 @@ from Crypto.Hash import MD5
 from Crypto.Cipher import AES
 
 __all__ = ['Encrypter']
-__revision__ ='$Id$'
+__cvsversion__ ='$Id$'
 
 class Encrypter:
     
@@ -13,7 +13,6 @@ class Encrypter:
         if password: 
             self.setPassword(password)
         else:
-            self.pwHash = None
             self.password = None
             self.aes = None
             
@@ -34,8 +33,6 @@ class Encrypter:
         else:
             topad = 32 - len(password)
             self.password = password + ('\0' * topad)
-        self.oMd5 = MD5.new(password)
-        self.pwHash = self.oMd5.hexdigest()
         self.aes = AES.new(self.password , AES.MODE_ECB)
         
     def encrypt (self , toEncrypt=None):

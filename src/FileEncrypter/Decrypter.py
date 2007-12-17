@@ -4,7 +4,7 @@ from Crypto.Hash import MD5
 from Crypto.Cipher import AES
 
 __all__ = ['Decrypter']
-__version__ = '$Id$'
+__cvsversion__ = '$Id$'
 
 class Decrypter:
     
@@ -35,8 +35,6 @@ class Decrypter:
         else:
             topad = 32 - len(password)
             self.password = password + ('\0' * topad)
-        self.oMd5 = MD5.new(self.password)
-        self.pwHash = self.oMd5.hexdigest()
         self.aes = AES.new(self.password , AES.MODE_ECB)
         
     def decrypt (self , toDecrypt=None):

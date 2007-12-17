@@ -19,7 +19,7 @@ DEFAULT_FILE = '/home/jdeiman/private/passwords'
 from FileEncrypter import FileEncDec , PWEncGlobals
 import sys , os , getopt , tempfile , getpass
 
-__version__ = '$Id$'
+__cvsversion__ = '$Id$'
 __all__ = ['usage' , 'setGlobalOpts' , 'getPassword' , 'answerIsYes' ,
            'findProg' , 'encrypt' , 'decrypt' , 'edit' , 'show' , 'main']
 
@@ -124,7 +124,7 @@ def encrypt (glbs , fCrypt):
             sys.exit(5)
     
     fCrypt.setInFile(glbs.DefaultFile)
-    fCrypt.encFile(glbs.DefaultEncFile)
+    fCrypt.encFile(glbs.DefaultEncFile , glbs.FileHead)
     fCrypt.close()
  
     if glbs.RemoveOriginal:
@@ -141,7 +141,7 @@ def decrypt (glbs , fCrypt):
             sys.exit(5)
     
     fCrypt.setInFile(glbs.DefaultEncFile)
-    if not fCrypt.checkPass():
+    if not fCrypt.checkPass(glbs.FileHead):
             print 'Passphrase incorrect'
             sys.exit(10)
     fCrypt.decFile(glbs.DefaultFile)
@@ -170,7 +170,7 @@ def edit (glbs , fCrypt):
               'can\'t find "vi" in your PATH'
         sys.exit(2)
     fCrypt.setInFile(glbs.DefaultEncFile)
-    if not fCrypt.checkPass():
+    if not fCrypt.checkPass(glbs.FileHead):
         print 'Passphrase incorrect'
         sys.exit(10)
     # Create the temp file
@@ -183,7 +183,7 @@ def edit (glbs , fCrypt):
     os.system(cmd)
     # Now encrypt the temp file to the original
     fCrypt.setInFile(tmpName)
-    fCrypt.encFile(glbs.DefaultEncFile)
+    fCrypt.encFile(glbs.DefaultEncFile , glbs.FileHead)
     fCrypt.close()
     # And finally, remove the temp file
     os.remove(tmpName)
@@ -217,7 +217,7 @@ def show (glbs , fCrypt):
         sys.exit(3)
     # It does, so we set it in the encryption instance
     fCrypt.setInFile(glbs.DefaultEncFile)
-    if not fCrypt.checkPass():
+    if not fCrypt.checkPass(glbs.FileHead):
             print 'Passphrase incorrect'
             sys.exit(10)
     

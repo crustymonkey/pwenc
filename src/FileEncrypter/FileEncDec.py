@@ -6,7 +6,7 @@ import os , sys
 
 __all__ = ['FileNotSetException' , 'PassNotSetException' , 
            'InvalidFileException' , 'FileEncDec']
-__version__ = '$Id$'
+__cvsversion__ = '$Id$'
 
 class FileNotSetException (Exception): pass
 class PassNotSetException (Exception): pass
@@ -72,10 +72,10 @@ class FileEncDec (Decrypter , Encrypter):
         
         return None
     
-    def _encDecFile (self , outFile , op):
+    def _encDecFile (self , outFile , op , header=None):
         if self.oFile == None:
             raise FileNotSetException , 'You must set a file to be en/decrypted'
-        if self.pwHash == None:
+        if self.password == None:
             raise PassNotSetException , 'You must set a password to ' + \
                                         'en/decrypt the file'
         try:
@@ -86,7 +86,7 @@ class FileEncDec (Decrypter , Encrypter):
         
         if op == self.encrypt:
             # Write the password hash at the beginning
-            oOutFile.write(self.oMd5.digest())
+            oOutFile.write(self.encrypt(header))
         else:
             # Read the first 16 bytes to bypass the password
             self.oFile.read(16) 
@@ -98,13 +98,13 @@ class FileEncDec (Decrypter , Encrypter):
             oOutFile.flush()
         oOutFile.close()
         
-    def encFile (self , outFile):
+    def encFile (self , outFile , header):
         """
         You must pass in either a filename, a file handle or a valid file
         descriptor (such as sys.stdout) to write the encryption output to.
         If a valid file is NOT passed in, the output will default to stdout
         """
-        self._encDecFile(outFile, self.encrypt)
+        self._encDecFile(outFile, self.encrypt , header)
 
     def decFile (self , outFile):
         """
@@ -114,17 +114,16 @@ class FileEncDec (Decrypter , Encrypter):
         """
         self._encDecFile(outFile , self.decrypt)
     
-    def checkPass (self):
+    def checkPass (self , header):
         """
         Read the first 16 bytes of the file to get the password hash and
         compare them to the current hash
         """
         self.oFile.seek(0)
-        passHash = self.oFile.read(16)
-        self.oFile.seek(0)
-        if passHash == self.oMd5.digest():
+        eHead = self.oFile.read(16)
+        head = self.aes.decrypt(eHead)
+        if head == header:
             return True
-        
         return False
         
     def close (self):

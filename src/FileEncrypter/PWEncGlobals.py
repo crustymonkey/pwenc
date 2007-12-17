@@ -4,7 +4,7 @@ from FileEncDec import *
 import getopt , os , sys , re
 
 __all__ = ['InvalidAction' , 'PWEncGlobals']
-__version__ = '$Id$'
+__cvsversion__ = '$Id$'
 
 class InvalidAction (Exception): pass
 
@@ -28,6 +28,7 @@ class PWEncGlobals (object):
             self._defaultEncFile = self._defaultFile + self.ENC_FILE_EXT
             
         self._removeOriginal = True
+        self._fileHead = 'UNENCRYPTED' + '\0' * 5
         
     def getAction (self):
         return self._action
@@ -72,11 +73,15 @@ class PWEncGlobals (object):
             self._removeOriginal = True
         else:
             self._removeOriginal = False
+            
+    def getFileHead(self):
+        return self._fileHead
     
     Action = property(getAction , setAction)
     DefaultFile = property(getDefaultFile , setDefaultFile)
     DefaultEncFile = property(getDefaultEncFile , None)
     RemoveOriginal = property(getRemoveOriginal , setRemoveOriginal)
+    FileHead = property(getFileHead)
     
 # testing
 if __name__ == '__main__':
