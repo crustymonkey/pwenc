@@ -16,7 +16,7 @@ from distutils.core import setup
 
 def runSetup ():
     setup(name = 'pwenc',
-          version = '0.1_alpha',
+          version = '0.1',
           author = 'Jay Deiman' ,
           author_email = 'jay@splitstreams.com' ,
           url = 'http://splitstreams.com' ,
