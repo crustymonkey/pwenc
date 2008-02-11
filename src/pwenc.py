@@ -20,6 +20,7 @@ from FileEncrypter import FileEncDec , PWEncGlobals
 import sys , os , getopt , tempfile , getpass
 
 __cvsversion__ = '$Id$'
+__version__ = '0.1.1'
 __all__ = ['usage' , 'setGlobalOpts' , 'getPassword' , 'answerIsYes' ,
            'findProg' , 'encrypt' , 'decrypt' , 'edit' , 'show' , 'main']
 
