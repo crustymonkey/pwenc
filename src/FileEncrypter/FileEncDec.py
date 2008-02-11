@@ -91,7 +91,7 @@ class FileEncDec (Decrypter , Encrypter):
             # Read the first 16 bytes to bypass the password
             self.oFile.read(16) 
         while True:
-            block = self.oFile.read(4096)
+            block = self.oFile.read()
             if not block:
                 break
             oOutFile.write(op(block))
