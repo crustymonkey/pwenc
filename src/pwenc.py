@@ -10,7 +10,7 @@ Use "pwenc.py -h" to show the help for command-line operations
 """
 
 # Change to your default unencrypted file path
-DEFAULT_FILE = '/home/jdeiman/private/passwords'
+DEFAULT_FILE = '/home/jdeiman/workspace/pwenc/src/passwords'
 
 ######################################
 #      DO NOT EDIT BELOW HERE        #
