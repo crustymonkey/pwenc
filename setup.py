@@ -13,14 +13,12 @@ setup(name='pwenc',
     url='http://stuffivelearned.org' ,
     license='GPLv2' ,
     platforms=['unix'] ,
-    description='This is a simple encrypted file manager for use with a '
-        'passphrase',
+    description='Password file encrypter and decrypter',
     long_description='This is a simple cli that will allow to '
         'encrypt/decrypt files given a passphrase.  This is meant to be '
         'simple/easy to use.  It uses sha512 for hashing and AES 256 for '
         'the symmetric encryption.',
     install_requires=requirements,
-    description='Password file encrypter and decrypter' ,
     scripts=['pwenc.py'],
     classifiers=[
         'Development Status :: 4 - Beta',
