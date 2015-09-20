@@ -10,10 +10,13 @@ from Crypto import Random
 from argparse import ArgumentParser, FileType
 from hashlib import sha512
 from getpass import getpass
+from tempfile import NamedTemporaryFile
+import subprocess as sp
 import os
 import six
 import sys
 
+# Crypto globals
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
@@ -61,7 +64,7 @@ def get_args():
     dump_sub_p.set_defaults(func=dump)
 
     enc_sub_p = sub_p.add_parser('enc', help='Encrypt "infile" and output to '
-        '"--file"')
+        '"outfile"')
     enc_sub_p.add_argument('-o', '--outfile', default=def_file,
         help='The file to write to [default: %(default)s]')
     enc_sub_p.add_argument('-i' , '--infile', type=FileType('rb'),
@@ -71,7 +74,7 @@ def get_args():
 
     args = p.parse_args()
 
-    if getattr(args, 'outfile'):
+    if getattr(args, 'outfile', None):
         if args.outfile == '-':
             args.outfile = sys.stdout
         else:
@@ -84,11 +87,64 @@ def get_args():
 # Command functions
 #
 def show(args):
-    pass
+    """
+    Decrypt the file and send the output to the specified pager
+
+    args:argparse.Namespace     The cli args
+    """
+    passphrase = _get_passphrase()
+    try:
+        proc = sp.Popen(args.pager, shell=True, stdin=sp.PIPE, close_fds=True)
+        for block in _decrypt(passphrase, args.infile):
+            proc.stdin.write(block)
+        proc.stdin.close()
+        proc.wait()
+    finally:
+        _close_files(args.infile)
 
 
 def edit(args):
-    pass
+    """
+    Decrypt the file and send the output to the specified pager
+
+    args:argparse.Namespace     The cli args
+    """
+    passphrase = _get_passphrase()
+    tmpfile = NamedTemporaryFile(delete=False)
+
+    # Decrypt the file to a temporary file
+    try:
+        for block in _decrypt(passphrase, args.infile):
+            tmpfile.write(block)
+    except Exception as e:
+        # If we hit an error here, we want to destroy the tempfile
+        tmpfile.close()
+        _destroy_tmp(tmpfile.name)
+        raise
+    
+    # Edit the file with the chosen editor
+    tmpfile.close()
+    proc = sp.Popen('{} {}'.format(args.editor, tmpfile.name), shell=True,
+        close_fds=True)
+    proc.wait()
+
+    # Now write the new file out encrypted to the specified location
+    try:
+        with open(tmpfile.name) as fh:
+            args.infile.seek(0)
+            args.infile.truncate(0)
+            for block in _encrypt(passphrase, fh):
+                args.infile.write(block)
+    except Exception as e:
+        print('AN ERROR OCCURRED DURING THE WRITING OF THE ENCRYPTED FILE\n '
+            'YOUR UNENCRYPTED FILE IS PRESERVED AT '
+            '"{}"!!'.format(tmpfile.name))
+        raise
+    finally:
+        _close_files(args.infile)
+
+    # Finally, destroy the tempfile
+    _destroy_tmp(tmpfile.name)
 
 
 def dump(args):
@@ -98,10 +154,11 @@ def dump(args):
     args:argparse.Namespace     The cli args
     """
     passphrase = _get_passphrase()
-    for block in _decrypt(passphrase, args.infile):
-        args.outfile.write(block)
-    
-    _close_files(args.infile, args.outfile)
+    try:
+        for block in _decrypt(passphrase, args.infile):
+            args.outfile.write(block)
+    finally:
+        _close_files(args.infile, args.outfile)
 
 
 def enc(args):
@@ -115,15 +172,28 @@ def enc(args):
     if passphrase != passphrase2:
         raise InvalidPassphrase('Your entered passphrases do not match')
 
-    for block in _encrypt(passphrase, args.infile):
-        args.outfile.write(block)
-
-    _close_files(args.outfile, args.infile)
+    try:
+        for block in _encrypt(passphrase, args.infile):
+            args.outfile.write(block)
+    finally:
+        _close_files(args.outfile, args.infile)
 
 
 #
 # Utility functions
 #
+def _destroy_tmp(tmp_name):
+    """
+    Overwrite the tmp file with random bytes, then delete it
+
+    tmp_name:str        The path to the temporary file
+    """
+    size = os.path.getsize(tmp_name)
+    with open(tmp_name, 'rb+') as fh:
+        fh.write(os.urandom(size))
+    os.unlink(tmp_name)
+
+
 def _close_files(*files):
     """
     Close any open file handles that are not standard streams
@@ -236,10 +306,10 @@ def _make_dirs(fname):
     """
     Create intermediate directories, if necessary, for file storage
 
-    args:argparse.Namespace     The cli args
+    fname:str       The cli args
     """
     dirname = os.path.dirname(fname)
-    if not os.path.isdir(dirname):
+    if dirname and not os.path.isdir(dirname):
         os.makedirs(dirname, 0700)
 
 
