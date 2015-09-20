@@ -1,13 +1,14 @@
     
 from distutils.core import setup
 import os
+from pwenc import __version__
 
 cur_dir = os.path.dirname(__file__)
 req_file = os.path.join(cur_dir, 'requirements.txt')
 requirements = [l.strip() for l in open(req_file).readlines() if l.strip()]
 
 setup(name='pwenc',
-    version='0.2.0',
+    version=__version__,
     author='Jay Deiman' ,
     author_email='admin@splitstreams.com' ,
     url='http://stuffivelearned.org' ,

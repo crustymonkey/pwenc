@@ -20,6 +20,8 @@ import sys
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
+__version__ = '0.2.1'
+
 class EncLengthError(Exception):
     pass
 
@@ -34,6 +36,8 @@ def get_args():
     p = ArgumentParser()
     p.add_argument('-D' , '--debug', action='store_true', default=False,
         help='Turn on debug output [default: %(default)s]')
+    p.add_argument('-V' , '--version', action='store_true', default=False,
+        help='Print the version and exit [default: %(default)s]')
     sub_p = p.add_subparsers(help='available commands')
 
     show_sub_p = sub_p.add_parser('show', help='Show the contents of the '
@@ -73,6 +77,10 @@ def get_args():
     enc_sub_p.set_defaults(func=enc)
 
     args = p.parse_args()
+
+    if args.version:
+        print(__version__)
+        sys.exit(0)
 
     if getattr(args, 'outfile', None):
         if args.outfile == '-':
@@ -203,6 +211,7 @@ def _close_files(*files):
     for fh in files:
         if not fh in (sys.stderr, sys.stdout, sys.stdin):
             fh.close()
+            os.chmod(fh.name, 0600)
 
 
 def _get_passphrase(msg='Enter passphrase'):
