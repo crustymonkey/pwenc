@@ -10,7 +10,7 @@ from Crypto import Random
 from argparse import ArgumentParser, FileType
 from hashlib import sha512
 from getpass import getpass
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryFile
 import subprocess as sp
 import os
 import six
@@ -20,7 +20,7 @@ import sys
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 class EncLengthError(Exception):
     pass
@@ -75,6 +75,12 @@ def get_args():
         metavar='FILE', default=sys.stdin, help='Encrypt the given file '
         '[default: STDIN]')
     enc_sub_p.set_defaults(func=enc)
+
+    pass_upd_sub_p = sub_p.add_parser('upd_pass',
+        help='Update the password for your file')
+    pass_upd_sub_p.add_argument('-i', '--infile', type=FileType('rb+'),
+        default=def_file, help='The file to show [default: %(default)s]')
+    pass_upd_sub_p.set_defaults(func=upd_pass)   
 
     args = p.parse_args()
 
@@ -186,6 +192,17 @@ def enc(args):
     finally:
         _close_files(args.outfile, args.infile)
 
+
+def pass_upd(args):
+    """
+    Encrypt the given file and dump it to the file location
+
+    args:argparse.Namespace     The cli args
+    """
+    passphrase = _get_passphrase()
+    new_pass = _get_passphrase('Enter a new passphrase')
+    new_pass2 = _get_passphrase('Enter your new passphrase again')
+    
 
 #
 # Utility functions
