@@ -105,7 +105,7 @@ def show(args):
         # Verify we have a valid password by getting the iterator and reading
         # the first block before opening the pager
         f_iter = _decrypt(passphrase, args.infile)
-        block = next(f_tier)
+        block = next(f_iter)
         # Now open the pager and start writing to it
         proc = sp.Popen(args.pager, shell=True, stdin=sp.PIPE, close_fds=True)
         proc.stdin.write(block)
