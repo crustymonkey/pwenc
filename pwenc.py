@@ -20,7 +20,7 @@ import sys
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 class EncLengthError(Exception):
     pass
@@ -102,8 +102,15 @@ def show(args):
     """
     passphrase = _get_passphrase()
     try:
+        # Verify we have a valid password by getting the iterator and reading
+        # the first block before opening the pager
+        f_iter = _decrypt(passphrase, args.infile)
+        block = next(f_tier)
+        # Now open the pager and start writing to it
         proc = sp.Popen(args.pager, shell=True, stdin=sp.PIPE, close_fds=True)
-        for block in _decrypt(passphrase, args.infile):
+        proc.stdin.write(block)
+        # Now continue iteration
+        for block in f_iter:
             proc.stdin.write(block)
         proc.stdin.close()
         proc.wait()
