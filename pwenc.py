@@ -79,7 +79,8 @@ def get_args():
     pass_upd_sub_p = sub_p.add_parser('upd_pass',
         help='Update the password for your file')
     pass_upd_sub_p.add_argument('-i', '--infile', type=FileType('rb+'),
-        default=def_file, help='The file to show [default: %(default)s]')
+        default=def_file, help='The file to change the password for '
+        '[default: %(default)s]')
     pass_upd_sub_p.set_defaults(func=upd_pass)   
 
     args = p.parse_args()
@@ -88,7 +89,7 @@ def get_args():
         print(__version__)
         sys.exit(0)
 
-    if getattr(args, 'outfile', None):
+    if hasattr(args, 'outfile'):
         if args.outfile == '-':
             args.outfile = sys.stdout
         else:
@@ -200,7 +201,7 @@ def enc(args):
         _close_files(args.outfile, args.infile)
 
 
-def pass_upd(args):
+def upd_pass(args):
     """
     Encrypt the given file and dump it to the file location
 
@@ -209,8 +210,42 @@ def pass_upd(args):
     passphrase = _get_passphrase()
     new_pass = _get_passphrase('Enter a new passphrase')
     new_pass2 = _get_passphrase('Enter your new passphrase again')
-    
 
+    if new_pass != new_pass2:
+        raise InvalidPassphrase('Your entered passphrases do not match')
+    
+    # Decrypt to temp file
+    tmp = NamedTemporaryFile(delete=False)
+    try:
+        for block in _decrypt(passphrase, args.infile):
+            tmp.write(block)
+    except:
+        _close_files(tmp, args.infile)
+        _destroy_tmp(tmp.name)
+        raise
+    finally:
+        _close_files(args.infile)
+
+    # Now, re-encrypt it
+    tmp.seek(0)
+    newf = open('{}.tmp'.format(args.infile.name), 'wb')
+    os.chmod(newf.name, 0600)
+    try:
+        for block in _encrypt(new_pass, tmp):
+            newf.write(block)
+    except:
+        _close_files(newf, tmp)
+        _destroy_tmp(tmp.name)
+        os.unlink(newf.name)
+        raise
+
+    # Close the files, destroy the tmp and move the new file into place
+    _close_files(newf, tmp)
+    _destroy_tmp(tmp.name)
+    os.rename(newf.name, args.infile.name)
+    print('Password updated for {}'.format(args.infile.name))
+
+    
 #
 # Utility functions
 #
@@ -235,7 +270,8 @@ def _close_files(*files):
     for fh in files:
         if not fh in (sys.stderr, sys.stdout, sys.stdin):
             fh.close()
-            os.chmod(fh.name, 0600)
+            if hasattr(fh, 'name') and os.path.exists(fh.name):
+                os.chmod(fh.name, 0600)
 
 
 def _get_passphrase(msg='Enter passphrase'):
