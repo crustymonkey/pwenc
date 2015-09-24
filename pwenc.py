@@ -20,7 +20,7 @@ import sys
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 class EncLengthError(Exception):
     pass
