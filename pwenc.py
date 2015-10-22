@@ -20,7 +20,7 @@ import sys
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 class EncLengthError(Exception):
     pass
@@ -332,9 +332,12 @@ def _encrypt(key, fh_to_encrypt):
     # yield chunks
     block = fh_to_encrypt.read(4096)
     while block:
-        pad_len = AES.block_size - len(block) % AES.block_size
-        if pad_len:
-            block = '{}{}'.format(block, PADDING * pad_len)
+        bl_len = len(block)
+        if bl_len < 4096:
+            pad_len = len(block) % AES.block_size
+            if pad_len:
+                pad_len = AES.block_size - pad_len
+                block = b'{}{}'.format(block, PADDING * pad_len)
         yield aes.encrypt(block)
         block = fh_to_encrypt.read(4096)
 
