@@ -1,23 +1,23 @@
-# pwenc.py #
+# pwenc.py
 
-## ABOUT ##
+## ABOUT
 This is a simple cli program that will encrypt and manage a file, mainly for
 use in keeping whatever data (passwords, random stuff, etc.) safe.
 
-## INSTALL ##
+## INSTALL
 This is pretty straightforward.  You can use either `pip` or `easy_install` to
 install, or the classic `python setup.py install` after downloading from
 github: http://github.com/crustymonkey/pwenc
 
-## ENCRYPTED FILE ##
+## ENCRYPTED FILE
 By default, this will act upon the file `$HOME/.pwenc/encrypted`.  You
 can manually change this on the command-line to override this.
 
-## COMMANDS ## 
+## COMMANDS
 The following gives a brief description of the commands available.  Complete
 help is available via `pwenc.py -h`.
 
-### show ###
+### show
 The show command will dump the unencrypted content to a pager (less, for
 example).
 
@@ -34,7 +34,7 @@ optional arguments:
                         less]
 ```
 
-### edit ###
+### edit
 The edit command will decrypt your file, allow you to edit it, and re-encrypt
 it.
 
@@ -51,7 +51,7 @@ optional arguments:
                         [default: vim]
 ```
 
-### dump ###
+### dump
 The dump command will just dump the unencrypted content a file, or stdout.
 
 ```
@@ -66,7 +66,7 @@ optional arguments:
                         [default: STDOUT]
 ```
 
-### enc ###
+### enc
 The enc command will encrypt a file or stdin and write to an outfile.
 
 ```
@@ -79,4 +79,17 @@ optional arguments:
                         /home/jay/.pwenc/encrypted]
   -i FILE, --infile FILE
                         Encrypt the given file [default: STDIN]
+```
+
+### upd_pass
+Update the password for the given file
+
+```
+usage: pwenc.py upd_pass [-h] [-i INFILE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INFILE, --infile INFILE
+                        The file to change the password for [default:
+                        /home/jay/.pwenc/encrypted]
 ```
