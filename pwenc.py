@@ -229,7 +229,7 @@ def upd_pass(args):
     # Now, re-encrypt it
     tmp.seek(0)
     newf = open('{}.tmp'.format(args.infile.name), 'wb')
-    os.chmod(newf.name, 0600)
+    os.chmod(newf.name, 0o600)
     try:
         for block in _encrypt(new_pass, tmp):
             newf.write(block)
@@ -271,7 +271,7 @@ def _close_files(*files):
         if not fh in (sys.stderr, sys.stdout, sys.stdin):
             fh.close()
             if hasattr(fh, 'name') and os.path.exists(fh.name):
-                os.chmod(fh.name, 0600)
+                os.chmod(fh.name, 0o600)
 
 
 def _get_passphrase(msg='Enter passphrase'):
@@ -382,7 +382,7 @@ def _make_dirs(fname):
     """
     dirname = os.path.dirname(fname)
     if dirname and not os.path.isdir(dirname):
-        os.makedirs(dirname, 0700)
+        os.makedirs(dirname, 0o700)
 
 
 #

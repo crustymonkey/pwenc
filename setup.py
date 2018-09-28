@@ -1,5 +1,5 @@
     
-from distutils.core import setup
+from setuptools import setup
 import os
 from pwenc import __version__
 
@@ -12,6 +12,7 @@ setup(name='pwenc',
     author='Jay Deiman' ,
     author_email='admin@splitstreams.com' ,
     url='http://stuffivelearned.org' ,
+    py_modules=['pwenc'],
     license='GPLv2' ,
     platforms=['unix'] ,
     description='Password file encrypter and decrypter',
@@ -21,6 +22,7 @@ setup(name='pwenc',
         'the symmetric encryption.',
     install_requires=requirements,
     scripts=['pwenc.py'],
+    entry_points={'console_scripts': ['pwenc=pwenc:main']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
