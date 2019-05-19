@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 from Crypto.Cipher import AES
 from Crypto import Random
@@ -13,14 +8,13 @@ from getpass import getpass
 from tempfile import NamedTemporaryFile, TemporaryFile
 import subprocess as sp
 import os
-import six
 import sys
 
 # Crypto globals
 MODE = AES.MODE_CFB
 PADDING = b'\x00'
 
-__version__ = '0.2.4'
+__version__ = '0.3.0'
 
 class EncLengthError(Exception):
     pass
@@ -81,7 +75,7 @@ def get_args():
     pass_upd_sub_p.add_argument('-i', '--infile', type=FileType('rb+'),
         default=def_file, help='The file to change the password for '
         '[default: %(default)s]')
-    pass_upd_sub_p.set_defaults(func=upd_pass)   
+    pass_upd_sub_p.set_defaults(func=upd_pass)
 
     args = p.parse_args()
 
@@ -143,7 +137,7 @@ def edit(args):
         tmpfile.close()
         _destroy_tmp(tmpfile.name)
         raise
-    
+
     # Edit the file with the chosen editor
     tmpfile.close()
     proc = sp.Popen('{} {}'.format(args.editor, tmpfile.name), shell=True,
@@ -152,7 +146,7 @@ def edit(args):
 
     # Now write the new file out encrypted to the specified location
     try:
-        with open(tmpfile.name) as fh:
+        with open(tmpfile.name, 'rb') as fh:
             args.infile.seek(0)
             args.infile.truncate(0)
             for block in _encrypt(passphrase, fh):
@@ -178,7 +172,7 @@ def dump(args):
     passphrase = _get_passphrase()
     try:
         for block in _decrypt(passphrase, args.infile):
-            args.outfile.write(block)
+            args.outfile.write(block.decode('utf-8'))
     finally:
         _close_files(args.infile, args.outfile)
 
@@ -213,7 +207,7 @@ def upd_pass(args):
 
     if new_pass != new_pass2:
         raise InvalidPassphrase('Your entered passphrases do not match')
-    
+
     # Decrypt to temp file
     tmp = NamedTemporaryFile(delete=False)
     try:
@@ -229,7 +223,7 @@ def upd_pass(args):
     # Now, re-encrypt it
     tmp.seek(0)
     newf = open('{}.tmp'.format(args.infile.name), 'wb')
-    os.chmod(newf.name, 0o600)
+    os.chmod(newf.name, 0o0600)
     try:
         for block in _encrypt(new_pass, tmp):
             newf.write(block)
@@ -245,7 +239,7 @@ def upd_pass(args):
     os.rename(newf.name, args.infile.name)
     print('Password updated for {}'.format(args.infile.name))
 
-    
+
 #
 # Utility functions
 #
@@ -271,7 +265,7 @@ def _close_files(*files):
         if not fh in (sys.stderr, sys.stdout, sys.stdin):
             fh.close()
             if hasattr(fh, 'name') and os.path.exists(fh.name):
-                os.chmod(fh.name, 0o600)
+                os.chmod(fh.name, 0o0600)
 
 
 def _get_passphrase(msg='Enter passphrase'):
@@ -281,7 +275,7 @@ def _get_passphrase(msg='Enter passphrase'):
     returns str     Returns the entered passphrase
     """
     return getpass('{}: '.format(msg.rstrip(' :')))
-    
+
 
 def _get_key(key, length=32):
     """
@@ -296,14 +290,14 @@ def _get_key(key, length=32):
             'of {}'.format(length, ', '.join(lengths)))
 
     # Convert to a byte array for encryption usage
-    key = key.encode('latin-1')
+    key = key.encode('utf-8')
     key_len = len(key)
 
     # Pad/truncate if necessary
     if key_len >= length:
         key = key[:length]
     elif key_len < length:
-        key = b'{}{}'.format(key, PADDING * (length - key_len))
+        key += PADDING * (length - key_len)
 
     return key
 
@@ -321,23 +315,27 @@ def _encrypt(key, fh_to_encrypt):
     key = _get_key(key)
     iv = Random.new().read(AES.block_size)
     salt = Random.new().read(AES.block_size)
-    hashed_key = b'{}{}'.format(salt, sha512(b'{}{}'.format(salt, key)).digest())
+    hashed_key = salt + sha512(salt + key).digest()
 
     aes = AES.new(key, MODE, iv)
     # For the first part, we yield the iv + the encyrpted salted hash
     # (length 70) of the key (for decrypt verification purposes)
-    yield b'{}{}'.format(iv, aes.encrypt(hashed_key))
-    
+    yield iv + aes.encrypt(hashed_key)
+
     # Now we read by 4k blocks and pad, if necessary, then encrypt and
     # yield chunks
-    block = fh_to_encrypt.read(4096)
+    func = fh_to_encrypt.read
+    if fh_to_encrypt == sys.stdin:
+        # This is necessary to read stdin as binary instead of string
+        func = fh_to_encrypt.buffer.read
+    block = func(4096)
     while block:
         bl_len = len(block)
         if bl_len < 4096:
             pad_len = len(block) % AES.block_size
             if pad_len:
                 pad_len = AES.block_size - pad_len
-                block = b'{}{}'.format(block, PADDING * pad_len)
+                block += PADDING * pad_len
         yield aes.encrypt(block)
         block = fh_to_encrypt.read(4096)
 
@@ -361,7 +359,7 @@ def _decrypt(key, fh_to_decrypt):
     dec_salt_hash = aes.decrypt(enc_salt_hash)
     salt = dec_salt_hash[:AES.block_size]
     hashed_key = dec_salt_hash[AES.block_size:]
-    sha.update(b'{}{}'.format(salt, key))
+    sha.update(salt + key)
 
     if sha.digest() != hashed_key:
         raise InvalidPassphrase('The passphrase you entered is not '
@@ -382,7 +380,7 @@ def _make_dirs(fname):
     """
     dirname = os.path.dirname(fname)
     if dirname and not os.path.isdir(dirname):
-        os.makedirs(dirname, 0o700)
+        os.makedirs(dirname, 0o0700)
 
 
 #
